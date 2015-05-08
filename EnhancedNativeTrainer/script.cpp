@@ -541,6 +541,28 @@ void process_player_menu()
 	draw_menu_from_struct_def(lines, lineCount, &activeLineIndexPlayer, caption, onconfirm_player_menu);
 }
 
+void give_all_weapons()
+{
+	static LPCSTR weaponNames[] = {
+		"WEAPON_KNIFE", "WEAPON_NIGHTSTICK", "WEAPON_HAMMER", "WEAPON_BAT", "WEAPON_GOLFCLUB", "WEAPON_CROWBAR",
+		"WEAPON_PISTOL", "WEAPON_COMBATPISTOL", "WEAPON_APPISTOL", "WEAPON_PISTOL50", "WEAPON_MICROSMG", "WEAPON_SMG",
+		"WEAPON_ASSAULTSMG", "WEAPON_ASSAULTRIFLE", "WEAPON_CARBINERIFLE", "WEAPON_ADVANCEDRIFLE", "WEAPON_MG",
+		"WEAPON_COMBATMG", "WEAPON_PUMPSHOTGUN", "WEAPON_SAWNOFFSHOTGUN", "WEAPON_ASSAULTSHOTGUN", "WEAPON_BULLPUPSHOTGUN",
+		"WEAPON_STUNGUN", "WEAPON_SNIPERRIFLE", "WEAPON_HEAVYSNIPER", "WEAPON_GRENADELAUNCHER", "WEAPON_GRENADELAUNCHER_SMOKE",
+		"WEAPON_RPG", "WEAPON_MINIGUN", "WEAPON_GRENADE", "WEAPON_STICKYBOMB", "WEAPON_SMOKEGRENADE", "WEAPON_BZGAS",
+		"WEAPON_MOLOTOV", "WEAPON_FIREEXTINGUISHER", "WEAPON_PETROLCAN",
+		"WEAPON_SNSPISTOL", "WEAPON_SPECIALCARBINE", "WEAPON_HEAVYPISTOL", "WEAPON_BULLPUPRIFLE", "WEAPON_HOMINGLAUNCHER",
+		"WEAPON_PROXMINE", "WEAPON_SNOWBALL", "WEAPON_VINTAGEPISTOL", "WEAPON_DAGGER", "WEAPON_FIREWORK", "WEAPON_MUSKET",
+		"WEAPON_MARKSMANRIFLE", "WEAPON_HEAVYSHOTGUN", "WEAPON_GUSENBERG", "WEAPON_HATCHET", "WEAPON_RAILGUN"
+	};
+
+	for (int i = 0; i < sizeof(weaponNames) / sizeof(weaponNames[0]); i++)
+		WEAPON::GIVE_DELAYED_WEAPON_TO_PED(PLAYER::PLAYER_PED_ID(), GAMEPLAY::GET_HASH_KEY((char *)weaponNames[i]), 1000, 0);
+	//parachute
+	WEAPON::GIVE_DELAYED_WEAPON_TO_PED(PLAYER::PLAYER_PED_ID(), 0xFBAB5776, 1, 0);
+	set_status_text("all weapon added");
+}
+
 int activeLineIndexWeapon = 0;
 
 bool onconfirm_weapon_menu(MenuItem<int> choice)
@@ -550,31 +572,10 @@ bool onconfirm_weapon_menu(MenuItem<int> choice)
 	Player player = PLAYER::PLAYER_ID();
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-	static LPCSTR weaponNames[] = {
-		"WEAPON_KNIFE", "WEAPON_NIGHTSTICK", "WEAPON_HAMMER", "WEAPON_BAT", "WEAPON_GOLFCLUB", "WEAPON_CROWBAR", "WEAPON_BOTTLE",
-		"WEAPON_PISTOL", "WEAPON_COMBATPISTOL", "WEAPON_APPISTOL", "WEAPON_PISTOL50", "WEAPON_MICROSMG", "WEAPON_SMG",
-		"WEAPON_ASSAULTSMG", "WEAPON_ASSAULTRIFLE", "WEAPON_CARBINERIFLE", "WEAPON_ADVANCEDRIFLE", "WEAPON_MG",
-		"WEAPON_COMBATMG", "WEAPON_PUMPSHOTGUN", "WEAPON_SAWNOFFSHOTGUN", "WEAPON_ASSAULTSHOTGUN", "WEAPON_BULLPUPSHOTGUN",
-		"WEAPON_STUNGUN", "WEAPON_SNIPERRIFLE", "WEAPON_HEAVYSNIPER", "WEAPON_GRENADELAUNCHER", "WEAPON_GRENADELAUNCHER_SMOKE",
-		"WEAPON_RPG", "WEAPON_MINIGUN", "WEAPON_GRENADE", "WEAPON_STICKYBOMB", "WEAPON_SMOKEGRENADE", "WEAPON_FLAREGUN", "WEAPON_FLARE",
-		"WEAPON_MOLOTOV", "WEAPON_FIREEXTINGUISHER", "WEAPON_PETROLCAN",
-		"WEAPON_SNSPISTOL", "WEAPON_SPECIALCARBINE", "WEAPON_HEAVYPISTOL", "WEAPON_BULLPUPRIFLE", "WEAPON_HOMINGLAUNCHER",
-		"WEAPON_PROXMINE", "WEAPON_SNOWBALL", "WEAPON_VINTAGEPISTOL", "WEAPON_DAGGER", "WEAPON_FIREWORK", "WEAPON_MUSKET",
-		"WEAPON_MARKSMANRIFLE", "WEAPON_HEAVYSHOTGUN", "WEAPON_GUSENBERG", "WEAPON_HATCHET", "WEAPON_RAILGUN", "WEAPON_GARBAGEBAG"
-	};
-
 	switch (activeLineIndexWeapon)
 	{
 	case 0:
-		for (int i = 0; i < sizeof(weaponNames) / sizeof(weaponNames[0]); i++)
-		{
-			WEAPON::GIVE_DELAYED_WEAPON_TO_PED(playerPed, GAMEPLAY::GET_HASH_KEY((char *)weaponNames[i]), 1000, 0);
-		}
-
-		//parachute
-		WEAPON::GIVE_DELAYED_WEAPON_TO_PED(PLAYER::PLAYER_PED_ID(), 0xFBAB5776, 1, 0);
-
-		set_status_text("All weapons added");
+		give_all_weapons();
 		break;
 		// switchable features
 	default:
@@ -791,6 +792,27 @@ void process_misc_menu()
 	draw_menu_from_struct_def(lines, lineCount, &activeLineIndexMisc, caption, onconfirm_misc_menu);
 }
 
+extern bool featureVehSpeedBoost;
+extern bool featureVehWrapInSpawned;
+
+void set_defaults()
+{
+	featurePlayerNeverWanted = true;
+	featurePlayerInvincible = featurePlayerInvincibleUpdated = true;
+	featureWeaponNoReload = true;
+	featureVehWrapInSpawned = true;
+	featureVehSpeedBoost = true;
+	featurePlayerFastRun = featurePlayerFastRunUpdated = true;
+	featurePlayerUnlimitedAbility = true;
+	featureTimePaused = featureTimePausedUpdated = true;
+
+	give_all_weapons();
+	PLAYER::SET_MAX_WANTED_LEVEL(0);
+	TIME::SET_CLOCK_TIME(12, 0, 0);
+
+	set_status_text("defaults set");
+}
+
 //==================
 // MAIN MENU
 //==================
@@ -825,6 +847,8 @@ bool onconfirm_main_menu(MenuItem<int> choice)
 	case 7:
 		process_misc_menu();
 		break;
+	case 8:
+		set_defaults();
 	}
 	return false;
 }
@@ -841,7 +865,8 @@ void process_main_menu()
 		"World",
 		"Time",
 		"Weather",
-		"Misc"
+		"Misc",
+		"[Defaults]"
 	};
 
 	std::vector<MenuItem<int>*> menuItems;
